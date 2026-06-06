@@ -1,0 +1,64 @@
+package com.example.agora_app_events.navigation
+
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.agora_app_events.ui.screens.HomeScreen
+import com.example.agora_app_events.ui.screens.LoginScreen
+import com.example.agora_app_events.ui.screens.RegisterScreen
+
+@Composable
+fun NavMap() {
+    val navController = rememberNavController()
+    var isLoggedIn by remember { mutableStateOf(false) }
+
+    NavHost(
+        navController = navController,
+        startDestination = Screen.Home.route
+    ) {
+        composable(Screen.Home.route) {
+            HomeScreen(
+                isLoggedIn = isLoggedIn,
+                onLoginClick = { navController.navigate(Screen.Login.route) },
+                onMyTicketsClick = {
+                    if (isLoggedIn) navController.navigate(Screen.MyTickets.route)
+                    else navController.navigate(Screen.Login.route)
+                },
+                onProfileClick = {
+                    if (isLoggedIn) navController.navigate(Screen.Profile.route)
+                    else navController.navigate(Screen.Login.route)
+                }
+            )
+        }
+        composable(Screen.Login.route) {
+            LoginScreen(
+                onLoginSuccess = {
+                    isLoggedIn = true
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                },
+                onRegisterClick = { navController.navigate(Screen.Register.route) },
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+        composable(Screen.Register.route) {
+            RegisterScreen(
+                onRegisterSuccess = {
+                    isLoggedIn = true
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                },
+                onLoginClick = { navController.navigate(Screen.Login.route) },
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+    }
+}

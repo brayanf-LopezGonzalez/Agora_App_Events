@@ -46,7 +46,9 @@ enum class EventStatus {
 @Composable
 fun HomeScreen(
     isLoggedIn: Boolean = false,
-    onLoginClick: () -> Unit = {}
+    onLoginClick: () -> Unit = {},
+    onMyTicketsClick: () -> Unit = {},
+    onProfileClick: () -> Unit = {}
 ) {
     val categories = listOf(
         "Todos", "Concierto", "Evento deportivo",
@@ -60,7 +62,13 @@ fun HomeScreen(
         bottomBar = {
             AgoraBottomNavBar(
                 selectedItem = selectedTab,
-                onItemSelected = { selectedTab = it }
+                onItemSelected = { index ->
+                    when (index) {
+                        0 -> selectedTab = 0
+                        1 -> onMyTicketsClick()
+                        2 -> onProfileClick()
+                    }
+                }
             )
         }
     ) { paddingValues ->
@@ -68,13 +76,14 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.White)
-                .padding(paddingValues)
+                .padding(bottom = paddingValues.calculateBottomPadding())
         ) {
             // Navbar
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(AgoraDark)
+                    .statusBarsPadding()
                     .padding(horizontal = 20.dp, vertical = 14.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically

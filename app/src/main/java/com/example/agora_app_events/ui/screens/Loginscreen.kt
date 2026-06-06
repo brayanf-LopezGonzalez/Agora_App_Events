@@ -28,7 +28,11 @@ import com.example.agora_app_events.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen() {
+fun LoginScreen(
+    onLoginSuccess: () -> Unit = {},
+    onRegisterClick: () -> Unit = {},
+    onBackClick: () -> Unit = {}
+) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -43,7 +47,7 @@ fun LoginScreen() {
                     )
                 },
                 actions = {
-                    IconButton(onClick = { /* Handle back */ }) {
+                    IconButton(onClick = { onBackClick()}) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
@@ -162,7 +166,7 @@ fun LoginScreen() {
             Spacer(modifier = Modifier.height(60.dp))
 
             Button(
-                onClick = { /* Handle login */ },
+                onClick = { onLoginSuccess()},
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
@@ -196,7 +200,7 @@ fun LoginScreen() {
                 text = annotatedString,
                 style = Typography.bodyMedium,
                 fontFamily = Poppins,
-                modifier = Modifier.clickable { /* Handle registration */ },
+                modifier = Modifier.clickable { onRegisterClick() },
                 textAlign = TextAlign.Center
             )
         }

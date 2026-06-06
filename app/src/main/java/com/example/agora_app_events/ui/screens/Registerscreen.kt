@@ -30,7 +30,11 @@ import com.example.agora_app_events.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegisterScreen() {
+fun RegisterScreen(
+    onRegisterSuccess: () -> Unit = {},
+    onLoginClick: () -> Unit = {},
+    onBackClick: () -> Unit = {}
+) {
     var nombre by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -47,7 +51,7 @@ fun RegisterScreen() {
                     )
                 },
                 actions = {
-                    IconButton(onClick = { /* Handle back */ }) {
+                    IconButton(onClick = { onBackClick() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
@@ -128,7 +132,7 @@ fun RegisterScreen() {
             Spacer(modifier = Modifier.height(60.dp))
 
             Button(
-                onClick = { /* Handle registration */ },
+                onClick = { onRegisterSuccess() },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
@@ -162,7 +166,7 @@ fun RegisterScreen() {
                 text = annotatedString,
                 style = Typography.bodyMedium,
                 fontFamily = Poppins,
-                modifier = Modifier.clickable { /* Handle login navigation */ },
+                modifier = Modifier.clickable { onLoginClick() },
                 textAlign = TextAlign.Center
             )
             
