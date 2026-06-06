@@ -9,9 +9,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.agora_app_events.ui.screens.EventDetailScreen
 import com.example.agora_app_events.ui.screens.HomeScreen
 import com.example.agora_app_events.ui.screens.LoginScreen
 import com.example.agora_app_events.ui.screens.RegisterScreen
+
+
 
 @Composable
 fun NavMap() {
@@ -33,6 +36,9 @@ fun NavMap() {
                 onProfileClick = {
                     if (isLoggedIn) navController.navigate(Screen.Profile.route)
                     else navController.navigate(Screen.Login.route)
+                },
+                onEventClick = { eventId, hasVenue ->
+                    navController.navigate(Screen.EventDetail.route(eventId, hasVenue))
                 }
             )
         }
@@ -60,5 +66,29 @@ fun NavMap() {
                 onBackClick = { navController.popBackStack() }
             )
         }
+
+        composable(
+            route = Screen.EventDetail.route,
+            arguments = listOf(
+                androidx.navigation.navArgument("eventId") {
+                    type = androidx.navigation.NavType.StringType
+                },
+                androidx.navigation.navArgument("hasVenue") {
+                    type = androidx.navigation.NavType.BoolType
+                }
+            )
+        ) { backStackEntry ->
+            val eventId = backStackEntry.arguments?.getString("eventId") ?: ""
+            val hasVenue = backStackEntry.arguments?.getBoolean("hasVenue") ?: true
+            EventDetailScreen(
+                eventId = eventId,
+                hasVenue = hasVenue,
+                isLoggedIn = isLoggedIn,
+                onBackClick = { navController.popBackStack() },
+                onBuyClick = { },
+                onLoginRequired = { navController.navigate(Screen.Login.route) }
+            )
+        }
+
     }
 }

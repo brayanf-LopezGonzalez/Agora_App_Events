@@ -35,7 +35,8 @@ data class Event(
     val availableSpots: Int,
     val totalSpots: Int,
     val status: EventStatus,
-    val backgroundColor: Color
+    val backgroundColor: Color,
+    val hasVenue: Boolean = true
 )
 
 enum class EventStatus {
@@ -48,7 +49,8 @@ fun HomeScreen(
     isLoggedIn: Boolean = false,
     onLoginClick: () -> Unit = {},
     onMyTicketsClick: () -> Unit = {},
-    onProfileClick: () -> Unit = {}
+    onProfileClick: () -> Unit = {},
+    onEventClick: (String, Boolean) -> Unit = { _, _ -> }
 ) {
     val categories = listOf(
         "Todos", "Concierto", "Evento deportivo",
@@ -203,7 +205,8 @@ fun HomeScreen(
                         availableSpots = 120,
                         totalSpots = 500,
                         status = EventStatus.AVAILABLE,
-                        backgroundColor = Color(0xFF8B0000) // Deep red for stadium feel
+                        backgroundColor = Color(0xFF8B0000), // Deep red for stadium feel
+                        hasVenue = true
                     ),
                     Event(
                         id = 2,
@@ -213,12 +216,29 @@ fun HomeScreen(
                         availableSpots = 0,
                         totalSpots = 500,
                         status = EventStatus.FULL,
-                        backgroundColor = Color(0xFF4A0000) // Darker red for concert
+                        backgroundColor = Color(0xFF4A0000), // Darker red for concert
+                        hasVenue = true
+                    ),
+                    Event(
+                        id = 3,
+                        title = "Noche de Gala",
+                        location = "Hotel Marquis",
+                        date = "10 Dic, 2025",
+                        availableSpots = 80,
+                        totalSpots = 200,
+                        status = EventStatus.AVAILABLE,
+                        backgroundColor = Color(0xFF1A3A2A),
+                        hasVenue = false
                     )
+
+
                 )
 
                 items(events) { event ->
-                    EventCard(event = event)
+                    EventCard(
+                        event = event,
+                        onEventClick = onEventClick
+                    )
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
@@ -268,7 +288,10 @@ fun AgoraBottomNavBar(
 }
 
 @Composable
-fun EventCard(event: Event) {
+fun EventCard(
+        event: Event,
+        onEventClick: (String, Boolean) -> Unit = { _, _ -> }
+    ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -328,9 +351,15 @@ fun EventCard(event: Event) {
 
             // Button (Bottom Right)
             Button(
-                onClick = { /* TODO */ },
+                onClick = {
+                    if (event.status == EventStatus.AVAILABLE) {
+                        onEventClick(event.id.toString(), event.hasVenue)
+                    }
+                },
+                enabled = event.status == EventStatus.AVAILABLE,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (event.status == EventStatus.AVAILABLE) AgoraOrange else Color.Gray
+                    containerColor = if (event.status == EventStatus.AVAILABLE) AgoraOrange else Color.Gray,
+                    disabledContainerColor = Color.Gray
                 ),
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier
