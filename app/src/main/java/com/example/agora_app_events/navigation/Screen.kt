@@ -6,7 +6,7 @@ sealed class Screen(val route: String) {
     object Register : Screen("register")
     object MyTickets : Screen("my_tickets")
     object Profile : Screen("profile")
-    object EventDetail : Screen("event/{eventId}") {
-        fun route(id: String) = "event/$id"
+    object EventDetail : Screen("event/{eventId}/{hasVenue}") {
+        fun route(id: String, hasVenue: Boolean) = "event/$id/$hasVenue"
     }
 }
