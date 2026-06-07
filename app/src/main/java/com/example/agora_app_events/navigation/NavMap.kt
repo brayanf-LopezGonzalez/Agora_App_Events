@@ -13,8 +13,9 @@ import com.example.agora_app_events.ui.screens.EventDetailScreen
 import com.example.agora_app_events.ui.screens.HomeScreen
 import com.example.agora_app_events.ui.screens.LoginScreen
 import com.example.agora_app_events.ui.screens.RegisterScreen
-
-
+import com.example.agora_app_events.ui.screens.ConfirmReservationScreen
+import com.example.agora_app_events.ui.screens.PaymentScreen
+import com.example.agora_app_events.ui.screens.TicketSuccessScreen
 
 @Composable
 fun NavMap() {
@@ -85,8 +86,42 @@ fun NavMap() {
                 hasVenue = hasVenue,
                 isLoggedIn = isLoggedIn,
                 onBackClick = { navController.popBackStack() },
-                onBuyClick = { },
+                onBuyClick = { navController.navigate(Screen.ConfirmReservation.route) },
                 onLoginRequired = { navController.navigate(Screen.Login.route) }
+            )
+        }
+
+        composable(Screen.ConfirmReservation.route) {
+            ConfirmReservationScreen(
+                onConfirmClick = {
+                    navController.navigate(Screen.Payment.route)
+                },
+                onCancelClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(Screen.Payment.route) {
+            PaymentScreen(
+                onPaymentSuccess = {
+                    navController.navigate(Screen.TicketSuccess.route) {
+                        popUpTo(Screen.Home.route) { inclusive = false }
+                    }
+                },
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(Screen.TicketSuccess.route) {
+            TicketSuccessScreen(
+                onViewReservationsClick = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                }
             )
         }
 
