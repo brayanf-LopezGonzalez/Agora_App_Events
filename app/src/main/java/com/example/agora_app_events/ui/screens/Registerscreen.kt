@@ -31,6 +31,10 @@ import androidx.compose.ui.unit.sp
 import com.example.agora_app_events.R
 import com.example.agora_app_events.ui.theme.*
 
+import com.example.agora_app_events.data.api.RetrofitClient
+import com.example.agora_app_events.data.api.RegisterRequest
+import kotlinx.coroutines.launch
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
@@ -49,6 +53,10 @@ fun RegisterScreen(
     var emailError by remember { mutableStateOf("") }
     var passwordError by remember { mutableStateOf("") }
     var confirmPasswordError by remember { mutableStateOf("") }
+
+    var isLoading by remember { mutableStateOf(false) }
+    var apiError by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
 
     fun validateEmail(value: String): Boolean {
         val regex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
@@ -317,20 +325,56 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(40.dp))
 
+            if (apiError != null) {
+                Text(
+                    text = apiError!!,
+                    color = Color.Red,
+                    fontSize = 14.sp,
+                    fontFamily = Poppins,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+            }
+
             Button(
-                onClick = { if (validate()) onRegisterSuccess() },
+                onClick = {
+                    if (validate() && !isLoading) {
+                        scope.launch {
+                            isLoading = true
+                            apiError = null
+                            try {
+                                val response = RetrofitClient.instance.register(
+                                    RegisterRequest(name, email, password)
+                                )
+                                if (response.isSuccessful && response.body()?.status == "success") {
+                                    onRegisterSuccess()
+                                } else {
+                                    apiError = response.body()?.message ?: "Error al crear cuenta"
+                                }
+                            } catch (e: Exception) {
+                                apiError = "Error de conexión: ${e.localizedMessage}"
+                            } finally {
+                                isLoading = false
+                            }
+                        }
+                    }
+                },
                 modifier = Modifier.fillMaxWidth().height(50.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = BtnConfirm),
-                shape = RoundedCornerShape(10.dp)
+                shape = RoundedCornerShape(10.dp),
+                enabled = !isLoading
             ) {
-                Text(
-                    text = "Crear cuenta",
-                    style = Typography.titleLarge.copy(
-                        color = Color.White,
-                        fontFamily = Poppins,
-                        fontWeight = FontWeight.Bold
+                if (isLoading) {
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                } else {
+                    Text(
+                        text = "Crear cuenta",
+                        style = Typography.titleLarge.copy(
+                            color = Color.White,
+                            fontFamily = Poppins,
+                            fontWeight = FontWeight.Bold
+                        )
                     )
-                )
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))

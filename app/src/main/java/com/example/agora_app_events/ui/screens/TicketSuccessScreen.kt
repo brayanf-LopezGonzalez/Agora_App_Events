@@ -21,6 +21,12 @@ import com.example.agora_app_events.ui.theme.*
 
 @Composable
 fun TicketSuccessScreen(
+    eventName: String = "Evento",
+    userName: String = "Usuario",
+    date: String = "",
+    zone: String = "",
+    quantity: Int = 0,
+    total: Double = 0.0,
     onViewReservationsClick: () -> Unit = {}
 ) {
     Column(
@@ -53,8 +59,7 @@ fun TicketSuccessScreen(
 
         // Ticket Card
         Card(
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F2F5)),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -69,14 +74,14 @@ fun TicketSuccessScreen(
                 ) {
                     Column {
                         Text(
-                            text = "América vs Chivas",
+                            text = eventName,
                             color = Color.White,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             fontFamily = Poppins
                         )
                         Text(
-                            text = "Partido deportivo",
+                            text = "Boleto Digital",
                             color = Color.White.copy(alpha = 0.8f),
                             fontSize = 14.sp,
                             fontFamily = Poppins
@@ -92,11 +97,11 @@ fun TicketSuccessScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        TicketDetailItem(label = "TITULAR", value = "Juan Carlos")
-                        TicketDetailItem(label = "FECHA Y HORA", value = "Martes 4 Nov, 2025 - 06:00 pm")
-                        TicketDetailItem(label = "ASIENTOS", value = "B1, B2, B3 - Zona B")
-                        TicketDetailItem(label = "CANTIDAD", value = "3 boletos")
-                        TicketDetailItem(label = "TOTAL PAGADO", value = "$600 MXN")
+                        TicketDetailItem(label = "TITULAR", value = userName)
+                        TicketDetailItem(label = "FECHA Y HORA", value = date)
+                        TicketDetailItem(label = "ZONA", value = zone)
+                        TicketDetailItem(label = "CANTIDAD", value = "$quantity boletos")
+                        TicketDetailItem(label = "TOTAL PAGADO", value = "$$total MXN")
                     }
 
                     // QR Code Placeholder

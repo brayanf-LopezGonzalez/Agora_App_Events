@@ -29,10 +29,16 @@ import androidx.compose.ui.unit.sp
 import com.example.agora_app_events.R
 import com.example.agora_app_events.ui.theme.*
 
+import com.example.agora_app_events.data.api.RetrofitClient
+import com.example.agora_app_events.data.api.LoginRequest
+import kotlinx.coroutines.launch
+
+import com.example.agora_app_events.data.api.UserData
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit = {},
+    onLoginSuccess: (UserData) -> Unit = {},
     onRegisterClick: () -> Unit = {},
     onBackClick: () -> Unit = {}
 ) {
@@ -41,6 +47,11 @@ fun LoginScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var emailError by remember { mutableStateOf("") }
     var passwordError by remember { mutableStateOf("") }
+    
+    var isLoading by remember { mutableStateOf(false) }
+    var apiError by remember { mutableStateOf<String?>(null) }
+    
+    val scope = rememberCoroutineScope()
 
     fun validateEmail(value: String): Boolean {
         val regex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
@@ -227,9 +238,43 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(60.dp))
 
+            if (apiError != null) {
+                Text(
+                    text = apiError!!,
+                    color = Color.Red,
+                    fontSize = 14.sp,
+                    fontFamily = Poppins,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+            }
+
             Button(
                 onClick = {
-                    if (validate()) onLoginSuccess()
+                    if (validate() && !isLoading) {
+                        scope.launch {
+                            isLoading = true
+                            apiError = null
+                            try {
+                                val response = RetrofitClient.instance.login(
+                                    LoginRequest(email, password)
+                                )
+                                if (response.isSuccessful && response.body()?.status == "success") {
+                                    val user = response.body()?.user
+                                    if (user != null) {
+                                        onLoginSuccess(user)
+                                    } else {
+                                        apiError = "No se recibieron datos del usuario"
+                                    }
+                                } else {
+                                    apiError = response.body()?.message ?: "Error al iniciar sesión"
+                                }
+                            } catch (e: Exception) {
+                                apiError = "Error de conexión: ${e.localizedMessage}"
+                            } finally {
+                                isLoading = false
+                            }
+                        }
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -237,16 +282,21 @@ fun LoginScreen(
                 colors = ButtonDefaults.buttonColors(
                     containerColor = BtnConfirm
                 ),
-                shape = RoundedCornerShape(10.dp)
+                shape = RoundedCornerShape(10.dp),
+                enabled = !isLoading
             ) {
-                Text(
-                    text = "Iniciar sesión",
-                    style = Typography.titleLarge.copy(
-                        color = Color.White,
-                        fontFamily = Poppins,
-                        fontWeight = FontWeight.Bold
+                if (isLoading) {
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                } else {
+                    Text(
+                        text = "Iniciar sesión",
+                        style = Typography.titleLarge.copy(
+                            color = Color.White,
+                            fontFamily = Poppins,
+                            fontWeight = FontWeight.Bold
+                        )
                     )
-                )
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
