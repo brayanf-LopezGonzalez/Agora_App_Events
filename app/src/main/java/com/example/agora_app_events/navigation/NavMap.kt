@@ -21,6 +21,8 @@ import com.example.agora_app_events.ui.screens.RegisterScreen
 import com.example.agora_app_events.ui.screens.ConfirmReservationScreen
 import com.example.agora_app_events.ui.screens.PaymentScreen
 import com.example.agora_app_events.ui.screens.TicketSuccessScreen
+import com.example.agora_app_events.ui.screens.ProfileScreen
+import com.example.agora_app_events.ui.screens.EditProfileScreen
 
 import com.example.agora_app_events.ui.screens.MyTicketsScreen
 
@@ -172,9 +174,28 @@ fun NavMap() {
         }
 
         composable(Screen.Profile.route) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Próximamente: Perfil", fontFamily = com.example.agora_app_events.ui.theme.Poppins)
-            }
+            ProfileScreen(
+                onHomeClick = { navController.navigate(Screen.Home.route) },
+                onMyTicketsClick = { navController.navigate(Screen.MyTickets.route) },
+                onEditProfileClick = { navController.navigate(Screen.EditProfile.route) },
+                onLogoutClick = {
+                    isLoggedIn = false
+                    userId = -1
+                    userName = ""
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.EditProfile.route) {
+            EditProfileScreen(
+                onSaveClick = { navController.popBackStack() },
+                onHomeClick = { navController.navigate(Screen.Home.route) },
+                onMyTicketsClick = { navController.navigate(Screen.MyTickets.route) },
+                onProfileClick = { navController.popBackStack() }
+            )
         }
     }
 }
