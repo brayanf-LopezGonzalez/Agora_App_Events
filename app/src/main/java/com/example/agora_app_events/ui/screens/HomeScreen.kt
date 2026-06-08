@@ -26,6 +26,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.agora_app_events.R
 import com.example.agora_app_events.ui.theme.*
+import androidx.compose.ui.text.style.TextAlign
+import com.example.agora_app_events.data.api.RetrofitClient
+import com.example.agora_app_events.data.api.EventResponse
 
 data class Event(
     val id: Int,
@@ -59,6 +62,27 @@ fun HomeScreen(
     var selectedCategory by remember { mutableStateOf("Todos") }
     var searchQuery by remember { mutableStateOf("") }
     var selectedTab by remember { mutableStateOf(0) }
+
+    // Estado para los eventos de la API
+    var eventsFromApi by remember { mutableStateOf<List<EventResponse>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    // Llamada a la API
+    LaunchedEffect(Unit) {
+        try {
+            val response = RetrofitClient.instance.getEvents()
+            if (response.isSuccessful) {
+                eventsFromApi = response.body() ?: emptyList()
+            } else {
+                errorMessage = "Error del servidor: ${response.code()}"
+            }
+        } catch (e: Exception) {
+            errorMessage = "Error de red: ${e.localizedMessage}"
+        } finally {
+            isLoading = false
+        }
+    }
 
     Scaffold(
         bottomBar = {
@@ -211,55 +235,106 @@ fun HomeScreen(
                     )
                 }
 
-                val events = listOf(
-                    Event(
-                        id = 1,
-                        title = "America vs Chivas",
-                        location = "Arena Monterrey",
-                        date = "15 Nov, 2025",
-                        availableSpots = 120,
-                        totalSpots = 500,
-                        status = EventStatus.AVAILABLE,
-                        backgroundColor = Color(0xFF8B0000), // Deep red for stadium feel
-                        hasVenue = true
-                    ),
-                    Event(
-                        id = 2,
-                        title = "Chayanne",
-                        location = "Arena Monterrey",
-                        date = "15 Nov, 2025",
-                        availableSpots = 0,
-                        totalSpots = 500,
-                        status = EventStatus.FULL,
-                        backgroundColor = Color(0xFF4A0000), // Darker red for concert
-                        hasVenue = true
-                    ),
-                    Event(
-                        id = 3,
-                        title = "Noche de Gala",
-                        location = "Hotel Marquis",
-                        date = "10 Dic, 2025",
-                        availableSpots = 80,
-                        totalSpots = 200,
-                        status = EventStatus.AVAILABLE,
-                        backgroundColor = Color(0xFF1A3A2A),
-                        hasVenue = false
-                    )
-
-
-                )
-
-                items(events) { event ->
-                    EventCard(
-                        event = event,
-                        onEventClick = onEventClick
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
+                if (isLoading) {
+                    item {
+                        Box(modifier = Modifier.fillMaxWidth().padding(20.dp), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(color = AgoraOrange)
+                        }
+                    }
+                } else if (eventsFromApi.isEmpty()) {
+                    item {
+                        Text(
+                            text = "No hay eventos disponibles",
+                            modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
+                            textAlign = TextAlign.Center,
+                            fontFamily = Poppins,
+                            color = Color.Gray
+                        )
+                    }
+                } else {
+                    items(eventsFromApi) { event ->
+                        EventCardFromApi(
+                            event = event,
+                            onEventClick = onEventClick
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
                 }
             }
         }
     }
 }
+
+@Composable
+fun EventCardFromApi(
+    event: EventResponse,
+    onEventClick: (String, Boolean) -> Unit = { _, _ -> }
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(180.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = AgoraDark)
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Surface(
+                color = StatusActive,
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(12.dp)
+            ) {
+                Text(
+                    text = "Disponible",
+                    color = Color.White,
+                    fontSize = 10.sp,
+                    fontFamily = Poppins,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                )
+            }
+
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = event.title ?: "Sin título",
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = Poppins
+                )
+                Text(
+                    text = event.venue ?: "Ubicación pendiente",
+                    color = Color.White.copy(alpha = 0.8f),
+                    fontSize = 12.sp,
+                    fontFamily = Poppins
+                )
+                Text(
+                    text = event.date ?: "",
+                    color = Color.White.copy(alpha = 0.8f),
+                    fontSize = 12.sp,
+                    fontFamily = Poppins
+                )
+            }
+
+            Button(
+                onClick = { onEventClick(event.id.toString(), true) },
+                colors = ButtonDefaults.buttonColors(containerColor = AgoraOrange),
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp)
+                    .height(32.dp)
+            ) {
+                Text("Ver detalles", color = Color.White, fontSize = 10.sp, fontFamily = Poppins)
+            }
+        }
+    }
+}
+
 
 @Composable
 fun AgoraBottomNavBar(
