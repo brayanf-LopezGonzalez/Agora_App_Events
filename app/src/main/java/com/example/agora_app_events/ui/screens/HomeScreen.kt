@@ -56,7 +56,7 @@ fun HomeScreen(
         "Todos", "Concierto", "Evento deportivo",
         "Obra de teatro", "Conferencia", "Festival", "Evento social"
     )
-    var selectedCategory by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf("Todos") }
     var searchQuery by remember { mutableStateOf("") }
     var selectedTab by remember { mutableStateOf(0) }
 
@@ -96,11 +96,25 @@ fun HomeScreen(
                     modifier = Modifier.height(24.dp)
                 )
                 if (isLoggedIn) {
-                    Icon(
-                        imageVector = Icons.Outlined.Notifications,
-                        contentDescription = "Notificaciones",
-                        tint = Color.White
-                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Notifications,
+                            contentDescription = "Notificaciones",
+                            tint = Color.White
+                        )
+                        Icon(
+                            imageVector = Icons.Outlined.Person,
+                            contentDescription = "Perfil",
+                            tint = Color.White,
+                            modifier = Modifier
+                                .size(28.dp)
+                                .background(AgoraOrange, shape = RoundedCornerShape(50))
+                                .padding(4.dp)
+                        )
+                    }
                 } else {
                     Button(
                         onClick = onLoginClick,
@@ -143,6 +157,7 @@ fun HomeScreen(
                             .fillMaxWidth()
                             .padding(bottom = 10.dp),
                         shape = RoundedCornerShape(10.dp),
+                        singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
                             unfocusedBorderColor = Color.LightGray,
                             focusedBorderColor = AgoraOrange

@@ -30,6 +30,19 @@ fun EventDetailScreen(
     onBuyClick: () -> Unit = {},
     onLoginRequired: () -> Unit = {}
 ) {
+    val venueZones = listOf("Zona VIP", "Zona A", "Zona B", "Zona C")
+    val venuePrices = listOf("$1,200 MXN", "$800 MXN", "$700 MXN", "$700 MXN")
+    val venueAvailable = listOf(133, 34, 42, 32)
+    val venueQuantities = remember { mutableStateListOf(0, 0, 0, 0) }
+
+    val noVenueTypes = listOf("Boleto VIP", "Boleto General")
+    val noVenuePrices = listOf("$1,200 MXN", "$800 MXN")
+    val noVenueAvailable = listOf(80, 133)
+    val noVenueQuantities = remember { mutableStateListOf(0, 0) }
+
+    val totalTickets = if (hasVenue) venueQuantities.sum() else noVenueQuantities.sum()
+    var showError by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -106,6 +119,7 @@ fun EventDetailScreen(
                     )
                 }
 
+                // event name
                 Text(
                     text = "América vs Chivas",
                     fontSize = 18.sp,
@@ -115,6 +129,7 @@ fun EventDetailScreen(
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
 
+                // Date
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(bottom = 6.dp)
@@ -134,6 +149,7 @@ fun EventDetailScreen(
                     )
                 }
 
+                // location
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(bottom = 6.dp)
@@ -153,6 +169,7 @@ fun EventDetailScreen(
                     )
                 }
 
+                // availability
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -175,6 +192,7 @@ fun EventDetailScreen(
                 Divider(color = Color(0xFFE0E0E0))
                 Spacer(modifier = Modifier.height(14.dp))
 
+                // Description
                 Text(
                     text = "Descripción",
                     fontSize = 14.sp,
@@ -195,6 +213,7 @@ fun EventDetailScreen(
                 Divider(color = Color(0xFFE0E0E0))
                 Spacer(modifier = Modifier.height(14.dp))
 
+                // ticket types
                 Text(
                     text = "Tipos de boleto",
                     fontSize = 14.sp,
@@ -205,13 +224,7 @@ fun EventDetailScreen(
                 )
 
                 if (hasVenue) {
-                    listOf(
-                        Triple("Zona VIP", "$1,200 MXN", 133),
-                        Triple("Zona A", "$800 MXN", 34),
-                        Triple("Zona B", "$700 MXN", 42),
-                        Triple("Zona C", "$700 MXN", 32)
-                    ).forEach { (zona, precio, disponibles) ->
-                        var cantidad by remember { mutableStateOf(0) }
+                    venueZones.forEachIndexed { index, zone ->
                         Surface(
                             shape = RoundedCornerShape(10.dp),
                             color = Color(0xFFF4F4F4),
@@ -225,51 +238,24 @@ fun EventDetailScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Column {
-                                    Text(
-                                        text = zona,
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.Medium,
-                                        fontFamily = Poppins,
-                                        color = AgoraOrange
-                                    )
-                                    Text(
-                                        text = precio,
-                                        fontSize = 13.sp,
-                                        fontFamily = Poppins,
-                                        color = Color.Black,
-                                        fontWeight = FontWeight.Medium
-                                    )
-                                    Text(
-                                        text = "$disponibles disponibles",
-                                        fontSize = 11.sp,
-                                        fontFamily = Poppins,
-                                        color = Color.Gray
-                                    )
+                                    Text(zone, fontSize = 13.sp, fontWeight = FontWeight.Medium, fontFamily = Poppins, color = AgoraOrange)
+                                    Text(venuePrices[index], fontSize = 13.sp, fontFamily = Poppins, color = Color.Black, fontWeight = FontWeight.Medium)
+                                    Text("${venueAvailable[index]} disponibles", fontSize = 11.sp, fontFamily = Poppins, color = Color.Gray)
                                 }
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    IconButton(
-                                        onClick = { if (cantidad > 0) cantidad-- },
-                                        modifier = Modifier.size(32.dp)
-                                    ) {
+                                    IconButton(onClick = { if (venueQuantities[index] > 0) venueQuantities[index]-- }, modifier = Modifier.size(32.dp)) {
                                         Text("-", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                                     }
                                     Text(
-                                        text = "$cantidad",
+                                        text = "${venueQuantities[index]}",
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Medium,
                                         fontFamily = Poppins,
-                                        color = if (cantidad > 0) AgoraOrange else Color.Black,
+                                        color = if (venueQuantities[index] > 0) AgoraOrange else Color.Black,
                                         modifier = Modifier.widthIn(min = 24.dp)
                                     )
-                                    IconButton(
-                                        onClick = { cantidad++ },
-                                        modifier = Modifier.size(32.dp)
-                                    ) {
-                                        Surface(
-                                            color = AgoraOrange,
-                                            shape = RoundedCornerShape(8.dp),
-                                            modifier = Modifier.size(28.dp)
-                                        ) {
+                                    IconButton(onClick = { venueQuantities[index]++ }, modifier = Modifier.size(32.dp)) {
+                                        Surface(color = AgoraOrange, shape = RoundedCornerShape(8.dp), modifier = Modifier.size(28.dp)) {
                                             Box(contentAlignment = Alignment.Center) {
                                                 Text("+", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
                                             }
@@ -280,11 +266,7 @@ fun EventDetailScreen(
                         }
                     }
                 } else {
-                    listOf(
-                        Triple("Boleto VIP", "$1,200 MXN", 80),
-                        Triple("Zona Común", "$800 MXN", 133)
-                    ).forEach { (tipo, precio, disponibles) ->
-                        var cantidad by remember { mutableStateOf(0) }
+                    noVenueTypes.forEachIndexed { index, type ->
                         Surface(
                             shape = RoundedCornerShape(10.dp),
                             color = Color(0xFFF4F4F4),
@@ -298,51 +280,24 @@ fun EventDetailScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Column {
-                                    Text(
-                                        text = tipo,
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.Medium,
-                                        fontFamily = Poppins,
-                                        color = AgoraOrange
-                                    )
-                                    Text(
-                                        text = precio,
-                                        fontSize = 13.sp,
-                                        fontFamily = Poppins,
-                                        color = Color.Black,
-                                        fontWeight = FontWeight.Medium
-                                    )
-                                    Text(
-                                        text = "$disponibles disponibles",
-                                        fontSize = 11.sp,
-                                        fontFamily = Poppins,
-                                        color = Color.Gray
-                                    )
+                                    Text(type, fontSize = 13.sp, fontWeight = FontWeight.Medium, fontFamily = Poppins, color = AgoraOrange)
+                                    Text(noVenuePrices[index], fontSize = 13.sp, fontFamily = Poppins, color = Color.Black, fontWeight = FontWeight.Medium)
+                                    Text("${noVenueAvailable[index]} disponibles", fontSize = 11.sp, fontFamily = Poppins, color = Color.Gray)
                                 }
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    IconButton(
-                                        onClick = { if (cantidad > 0) cantidad-- },
-                                        modifier = Modifier.size(32.dp)
-                                    ) {
+                                    IconButton(onClick = { if (noVenueQuantities[index] > 0) noVenueQuantities[index]-- }, modifier = Modifier.size(32.dp)) {
                                         Text("-", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                                     }
                                     Text(
-                                        text = "$cantidad",
+                                        text = "${noVenueQuantities[index]}",
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Medium,
                                         fontFamily = Poppins,
-                                        color = if (cantidad > 0) AgoraOrange else Color.Black,
+                                        color = if (noVenueQuantities[index] > 0) AgoraOrange else Color.Black,
                                         modifier = Modifier.widthIn(min = 24.dp)
                                     )
-                                    IconButton(
-                                        onClick = { cantidad++ },
-                                        modifier = Modifier.size(32.dp)
-                                    ) {
-                                        Surface(
-                                            color = AgoraOrange,
-                                            shape = RoundedCornerShape(8.dp),
-                                            modifier = Modifier.size(28.dp)
-                                        ) {
+                                    IconButton(onClick = { noVenueQuantities[index]++ }, modifier = Modifier.size(32.dp)) {
+                                        Surface(color = AgoraOrange, shape = RoundedCornerShape(8.dp), modifier = Modifier.size(28.dp)) {
                                             Box(contentAlignment = Alignment.Center) {
                                                 Text("+", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
                                             }
@@ -354,23 +309,40 @@ fun EventDetailScreen(
                     }
                 }
 
+                // error message
+                if (showError) {
+                    Text(
+                        text = "Debes seleccionar al menos un boleto",
+                        color = Color.Red,
+                        fontSize = 11.sp,
+                        fontFamily = Poppins,
+                        modifier = Modifier.padding(bottom = 8.dp, start = 4.dp)
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(8.dp))
 
+                // buy button
                 Button(
                     onClick = {
-                        if (isLoggedIn) onBuyClick()
-                        else onLoginRequired()
+                        if (totalTickets == 0) {
+                            showError = true
+                        } else {
+                            showError = false
+                            if (isLoggedIn) onBuyClick()
+                            else onLoginRequired()
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = AgoraOrange
+                        containerColor = if (totalTickets > 0) AgoraOrange else Color.Gray
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
-                        text = "Comprar boletos",
+                        text = if (totalTickets > 0) "Comprar boletos ($totalTickets)" else "Comprar boletos",
                         color = Color.White,
                         fontSize = 15.sp,
                         fontFamily = Poppins,

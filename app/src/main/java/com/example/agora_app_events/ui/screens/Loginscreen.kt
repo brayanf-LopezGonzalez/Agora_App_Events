@@ -7,6 +7,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,6 +20,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -35,6 +38,35 @@ fun LoginScreen(
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+    var emailError by remember { mutableStateOf("") }
+    var passwordError by remember { mutableStateOf("") }
+
+    fun validateEmail(value: String): Boolean {
+        val regex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
+        return regex.matches(value)
+    }
+
+    fun validatePassword(value: String): Boolean {
+        return value.length >= 8
+    }
+
+    fun validate(): Boolean {
+        var valid = true
+        if (!validateEmail(email)) {
+            emailError = "Ingresa un correo válido (ejemplo@correo.com)"
+            valid = false
+        } else {
+            emailError = ""
+        }
+        if (!validatePassword(password)) {
+            passwordError = "La contraseña debe tener al menos 8 caracteres"
+            valid = false
+        } else {
+            passwordError = ""
+        }
+        return valid
+    }
 
     Scaffold(
         topBar = {
@@ -47,7 +79,7 @@ fun LoginScreen(
                     )
                 },
                 actions = {
-                    IconButton(onClick = { onBackClick()}) {
+                    IconButton(onClick = { onBackClick() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
@@ -102,7 +134,10 @@ fun LoginScreen(
                 )
                 TextField(
                     value = email,
-                    onValueChange = { email = it },
+                    onValueChange = {
+                        email = it
+                        if (emailError.isNotEmpty()) emailError = ""
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
@@ -114,16 +149,25 @@ fun LoginScreen(
                         )
                     },
                     colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color(0xFFDDE1F0),
-                        unfocusedContainerColor = Color(0xFFDDE1F0),
-                        disabledContainerColor = Color(0xFFDDE1F0),
+                        focusedContainerColor = if (emailError.isNotEmpty()) Color(0xFFFFEEEE) else Color(0xFFDDE1F0),
+                        unfocusedContainerColor = if (emailError.isNotEmpty()) Color(0xFFFFEEEE) else Color(0xFFDDE1F0),
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
                     ),
                     shape = RoundedCornerShape(12.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                    singleLine = true
+                    singleLine = true,
+                    isError = emailError.isNotEmpty()
                 )
+                if (emailError.isNotEmpty()) {
+                    Text(
+                        text = emailError,
+                        color = Color.Red,
+                        fontSize = 11.sp,
+                        fontFamily = Poppins,
+                        modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -139,34 +183,54 @@ fun LoginScreen(
                 )
                 TextField(
                     value = password,
-                    onValueChange = { password = it },
+                    onValueChange = {
+                        password = it
+                        if (passwordError.isNotEmpty()) passwordError = ""
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
                     placeholder = {
-                        Text(
-                            text = "**************",
-                            color = TextHint
-                        )
+                        Text(text = "**************", color = TextHint)
                     },
-                    visualTransformation = PasswordVisualTransformation(),
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(
+                                imageVector = if (passwordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                                contentDescription = if (passwordVisible) "Ocultar" else "Mostrar",
+                                tint = TextHint
+                            )
+                        }
+                    },
                     colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color(0xFFDDE1F0),
-                        unfocusedContainerColor = Color(0xFFDDE1F0),
-                        disabledContainerColor = Color(0xFFDDE1F0),
+                        focusedContainerColor = if (passwordError.isNotEmpty()) Color(0xFFFFEEEE) else Color(0xFFDDE1F0),
+                        unfocusedContainerColor = if (passwordError.isNotEmpty()) Color(0xFFFFEEEE) else Color(0xFFDDE1F0),
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
                     ),
                     shape = RoundedCornerShape(12.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    singleLine = true
+                    singleLine = true,
+                    isError = passwordError.isNotEmpty()
                 )
+                if (passwordError.isNotEmpty()) {
+                    Text(
+                        text = passwordError,
+                        color = Color.Red,
+                        fontSize = 11.sp,
+                        fontFamily = Poppins,
+                        modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(60.dp))
 
             Button(
-                onClick = { onLoginSuccess()},
+                onClick = {
+                    if (validate()) onLoginSuccess()
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
