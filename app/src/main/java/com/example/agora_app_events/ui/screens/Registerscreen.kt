@@ -9,6 +9,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,6 +22,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -35,10 +38,51 @@ fun RegisterScreen(
     onLoginClick: () -> Unit = {},
     onBackClick: () -> Unit = {}
 ) {
-    var nombre by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+    var confirmPasswordVisible by remember { mutableStateOf(false) }
+
+    var nameError by remember { mutableStateOf("") }
+    var emailError by remember { mutableStateOf("") }
+    var passwordError by remember { mutableStateOf("") }
+    var confirmPasswordError by remember { mutableStateOf("") }
+
+    fun validateEmail(value: String): Boolean {
+        val regex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
+        return regex.matches(value)
+    }
+
+    fun validate(): Boolean {
+        var valid = true
+        if (name.isBlank()) {
+            nameError = "El nombre no puede estar vacío"
+            valid = false
+        } else {
+            nameError = ""
+        }
+        if (!validateEmail(email)) {
+            emailError = "Ingresa un correo válido (ejemplo@correo.com)"
+            valid = false
+        } else {
+            emailError = ""
+        }
+        if (password.length < 8) {
+            passwordError = "La contraseña debe tener al menos 8 caracteres"
+            valid = false
+        } else {
+            passwordError = ""
+        }
+        if (confirmPassword != password) {
+            confirmPasswordError = "Las contraseñas no coinciden"
+            valid = false
+        } else {
+            confirmPasswordError = ""
+        }
+        return valid
+    }
 
     Scaffold(
         topBar = {
@@ -88,57 +132,195 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Nombre Field
-            RegistrationTextField(
-                label = "Nombre",
-                value = nombre,
-                onValueChange = { nombre = it },
-                placeholder = "Escriba su nombre..."
-            )
+            // Name
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "Nombre",
+                    style = Typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    fontFamily = Poppins,
+                    color = Color.Black,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                TextField(
+                    value = name,
+                    onValueChange = {
+                        if (it.all { char -> char.isLetter() || char.isWhitespace() }) {
+                            name = it
+                            if (nameError.isNotEmpty()) nameError = ""
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    placeholder = { Text("Escriba su nombre...", fontFamily = Poppins, color = TextHint) },
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = if (nameError.isNotEmpty()) Color(0xFFFFEEEE) else Color(0xFFDDE1F0),
+                        unfocusedContainerColor = if (nameError.isNotEmpty()) Color(0xFFFFEEEE) else Color(0xFFDDE1F0),
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true,
+                    isError = nameError.isNotEmpty()
+                )
+                if (nameError.isNotEmpty()) {
+                    Text(
+                        text = nameError,
+                        color = Color.Red,
+                        fontSize = 11.sp,
+                        fontFamily = Poppins,
+                        modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Email Field
-            RegistrationTextField(
-                label = "Correo electrónico",
-                value = email,
-                onValueChange = { email = it },
-                placeholder = "tucorreo@ejemplo.com",
-                keyboardType = KeyboardType.Email
-            )
+            // email
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "Correo electrónico",
+                    style = Typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    fontFamily = Poppins,
+                    color = Color.Black,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                TextField(
+                    value = email,
+                    onValueChange = {
+                        email = it
+                        if (emailError.isNotEmpty()) emailError = ""
+                    },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    placeholder = { Text("tucorreo@ejemplo.com", fontFamily = Poppins, color = TextHint) },
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = if (emailError.isNotEmpty()) Color(0xFFFFEEEE) else Color(0xFFDDE1F0),
+                        unfocusedContainerColor = if (emailError.isNotEmpty()) Color(0xFFFFEEEE) else Color(0xFFDDE1F0),
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                    singleLine = true,
+                    isError = emailError.isNotEmpty()
+                )
+                if (emailError.isNotEmpty()) {
+                    Text(
+                        text = emailError,
+                        color = Color.Red,
+                        fontSize = 11.sp,
+                        fontFamily = Poppins,
+                        modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Password Field
-            RegistrationTextField(
-                label = "Contraseña",
-                value = password,
-                onValueChange = { password = it },
-                placeholder = "**************",
-                isPassword = true
-            )
+            // Password
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "Contraseña",
+                    style = Typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    fontFamily = Poppins,
+                    color = Color.Black,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                TextField(
+                    value = password,
+                    onValueChange = {
+                        password = it
+                        if (passwordError.isNotEmpty()) passwordError = ""
+                    },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    placeholder = { Text("**************", color = TextHint) },
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(
+                                imageVector = if (passwordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                                contentDescription = null,
+                                tint = TextHint
+                            )
+                        }
+                    },
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = if (passwordError.isNotEmpty()) Color(0xFFFFEEEE) else Color(0xFFDDE1F0),
+                        unfocusedContainerColor = if (passwordError.isNotEmpty()) Color(0xFFFFEEEE) else Color(0xFFDDE1F0),
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    singleLine = true,
+                    isError = passwordError.isNotEmpty()
+                )
+                if (passwordError.isNotEmpty()) {
+                    Text(
+                        text = passwordError,
+                        color = Color.Red,
+                        fontSize = 11.sp,
+                        fontFamily = Poppins,
+                        modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Confirm Password Field
-            RegistrationTextField(
-                label = "Confirmar contraseña",
-                value = confirmPassword,
-                onValueChange = { confirmPassword = it },
-                placeholder = "**************",
-                isPassword = true
-            )
+            // confirm password
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "Confirmar contraseña",
+                    style = Typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    fontFamily = Poppins,
+                    color = Color.Black,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                TextField(
+                    value = confirmPassword,
+                    onValueChange = {
+                        confirmPassword = it
+                        if (confirmPasswordError.isNotEmpty()) confirmPasswordError = ""
+                    },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    placeholder = { Text("**************", color = TextHint) },
+                    visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                            Icon(
+                                imageVector = if (confirmPasswordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                                contentDescription = null,
+                                tint = TextHint
+                            )
+                        }
+                    },
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = if (confirmPasswordError.isNotEmpty()) Color(0xFFFFEEEE) else Color(0xFFDDE1F0),
+                        unfocusedContainerColor = if (confirmPasswordError.isNotEmpty()) Color(0xFFFFEEEE) else Color(0xFFDDE1F0),
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    singleLine = true,
+                    isError = confirmPasswordError.isNotEmpty()
+                )
+                if (confirmPasswordError.isNotEmpty()) {
+                    Text(
+                        text = confirmPasswordError,
+                        color = Color.Red,
+                        fontSize = 11.sp,
+                        fontFamily = Poppins,
+                        modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+                    )
+                }
+            }
 
-            Spacer(modifier = Modifier.height(60.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
             Button(
-                onClick = { onRegisterSuccess() },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = BtnConfirm
-                ),
+                onClick = { if (validate()) onRegisterSuccess() },
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = BtnConfirm),
                 shape = RoundedCornerShape(10.dp)
             ) {
                 Text(
@@ -169,54 +351,9 @@ fun RegisterScreen(
                 modifier = Modifier.clickable { onLoginClick() },
                 textAlign = TextAlign.Center
             )
-            
+
             Spacer(modifier = Modifier.height(24.dp))
         }
-    }
-}
-
-@Composable
-fun RegistrationTextField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    keyboardType: KeyboardType = KeyboardType.Text,
-    isPassword: Boolean = false
-) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = label,
-            style = Typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            fontFamily = Poppins,
-            color = Color.Black,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-        TextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            placeholder = {
-                Text(
-                    text = placeholder,
-                    fontFamily = Poppins,
-                    color = TextHint
-                )
-            },
-            visualTransformation = if (isPassword) PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color(0xFFDDE1F0),
-                unfocusedContainerColor = Color(0xFFDDE1F0),
-                disabledContainerColor = Color(0xFFDDE1F0),
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-            ),
-            shape = RoundedCornerShape(12.dp),
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-            singleLine = true
-        )
     }
 }
 
